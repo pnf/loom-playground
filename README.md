@@ -14,5 +14,8 @@ $ make images
 ```
 
 If you're using IntellIJ, the jdk you want to add is `$WHEREEVER/loom/build/macosx-x86_64-server-release/images/jdk`
-(or something analogous for linux), not the `jdk` directory directly in `...releases`.
+(or something analogous for linux), not the `jdk` directory directly in `...release/`.
+
+Note that, since the loom branch is (as of October 2018) is off of Java 12, we also have graal available,
+which you can enable with `-XX:+UnlockExperimentalVMOptions -XX:+UseJVMCICompiler` in the run targets.
 
