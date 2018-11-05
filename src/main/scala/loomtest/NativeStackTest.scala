@@ -86,6 +86,8 @@ object NativeStackTest  extends App {
 
   println(sad())
 
+  ex.shutdown()
+
 
 }
 
