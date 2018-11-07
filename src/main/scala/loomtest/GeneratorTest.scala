@@ -1,53 +1,45 @@
 package loomtest
 
-  import java.util.concurrent.{Callable, ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
+//  import java.util.concurrent.{Callable, ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
 
 
-class SillyGenerator[T](f: (T ⇒ Unit) ⇒ Unit) extends Iterator[T] {
+class PythonStyleGenerator[T](setNextAndYield: (T ⇒ Unit) ⇒ Unit) extends Iterator[T] {
 
   private val scope = new ContinuationScope("Bill")
-  private val cont = new Continuation(scope, () ⇒ f(setCurrentAndYield(_)))
-
-  private var current: T = _
-  private var valid = false
-
-
-  private def setCurrentAndYield(t: T): Unit = {
-    current = t
-    valid = true
+  private val cont = new Continuation(scope, () ⇒ setNextAndYield { e ⇒
+    elem = e
+    stale = false
     Continuation.`yield`(scope)
-  }
+  })
+
+  private var elem: T = _
+  private var stale = true
 
   override def hasNext: Boolean = {
-    if(!valid && !cont.isDone) cont.run()
-    valid
+    if(stale && !cont.isDone) cont.run()
+    !stale
   }
 
   override def next(): T = if(!hasNext) throw new NoSuchElementException else {
-    valid = false
-    current
+    stale = true
+    elem
   }
 }
 
-object SillyGenerator {
-  def apply() = {
-    val gen = new SillyGenerator[Int]({
-      yld: (Int ⇒ Unit) ⇒
-        for (i ← 0 until 10) {
-          for (j ← 0 until 10) {
-            println(s"about to yld $i $j")
-            yld(i * j)
-          }
-        }
-    })
-    for (x ← gen) println(x)
-
-  }
+object PythonStyleGenerator {
+  def apply[T](setNextAndYield: (T ⇒ Unit) ⇒ Unit) = new PythonStyleGenerator[T](setNextAndYield)
 }
-
-
 
 object GeneratorTest extends App {
-  SillyGenerator()
+  val gen = PythonStyleGenerator[Int] {
+    setNextAndYield ⇒
+      for (i ← 0 until 10) {
+        for (j ← 0 until 10) {
+          println(s"about to yield $i $j")
+          setNextAndYield(i * j)
+        }
+      }
+  }
+  for (x ← gen) println(x)
 
 }
