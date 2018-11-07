@@ -1,6 +1,9 @@
 package loomtest
 
 import java.util.concurrent._
+import MemoizedFunction._
+
+/*
 
 
 
@@ -29,6 +32,7 @@ class MemoizedFunction0[T](name: String, f: ⇒T)(implicit ex: Executor) {
 
 
 }
+*/
 
 
 object NativeStackTest  extends App {
