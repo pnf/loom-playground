@@ -17,7 +17,7 @@ object MemoizedFunction {
     if(debug) (s"$tid woke up after $ms")
   }
 
-  val cache = new ConcurrentHashMap[List[Any],Future[_]]
+  val cache = new ConcurrentHashMap[List[Any],Fiber[_]]
 
   def schedule[T](f: ⇒ T)(implicit ex: Executor) = Fiber.schedule[T](new Callable[T] {
     override def call(): T = f
@@ -29,27 +29,27 @@ object MemoizedFunction {
 
 class MemoizedFunction0[T](name: String, f: ⇒T)(implicit ex: Executor) {
   import MemoizedFunction._
-  private lazy val future = Fiber.schedule[T](ex, new Callable[T] {
+  private lazy val fiber = Fiber.schedule[T](ex, new Callable[T] {
     override def call(): T = {
       if (debug) println(s"$tid launching $name")
       f
     }
   })
 
-  def launch() = !future.isDone
-  def apply() = future.get()
+  def launch() = fiber.isAlive
+  def apply() = fiber.join()
 }
 
 class MemoizedFunction1[T1,T](name: String, f: T1 ⇒ T)(implicit ex: Executor) {
   import MemoizedFunction._
 
-  def future(x1: T1) = {
+  def fiber(x1: T1) = {
     val key = name :: x1 :: Nil
-    cache.computeIfAbsent(key, _ ⇒ Fiber.schedule(ex, new Callable[T] { override def call = f(x1) })).asInstanceOf[Future[T]]
+    cache.computeIfAbsent(key, _ ⇒ Fiber.schedule(ex, new Callable[T] { override def call = f(x1) }))
   }
 
-  def launch(x1: T1) = !future(x1).isDone
-  def apply(x1: T1) = future(x1).get()
+  def launch(x1: T1) = fiber(x1).isAlive
+  def apply(x1: T1) = fiber(x1).join()
 
 }
 

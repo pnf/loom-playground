@@ -22,7 +22,7 @@ object ParallelTest  extends App {
 
   val t0 = System.nanoTime()
   val futs = (0 to 100000).map(rando(_))
-  val tot = futs.foldLeft(0)(_ + _.get())
+  val tot = futs.foldLeft(0)(_ + _.join())
   val t1 = System.nanoTime()
   println((t1-t0)/1.0e6)
   println(tot)

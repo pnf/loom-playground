@@ -43,3 +43,8 @@ object GeneratorTest extends App {
   for (x ← gen) println(x)
 
 }
+
+object Fooey {
+  def fibs(a: Int = 0, b: Int = 1): Stream[Int] = Stream.cons(a, fibs(b, a+b))
+
+}
